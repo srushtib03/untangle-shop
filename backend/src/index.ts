@@ -1,5 +1,8 @@
 import express from "express";
 import cors from "cors";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 const app = express();
 const PORT = 3000;
@@ -59,59 +62,68 @@ app.get("/", (req, res) => {
 });
 
 // GET ALL PRODUCTS
-app.get("/products", (req, res) => {
+app.get("/products", async (req, res) => {
+  const products = await prisma.product.findMany();
   res.json(products);
 });
 // GET PRODUCT BY ID
-app.get("/products/:id", (req, res) => {
+app.get("/products/:id", async (req, res) => {
+  const id = Number(req.params.id);
 
-    const id = Number(req.params.id);
+  const product = await prisma.product.findUnique({
+    where: {
+      id,
+    },
+  });
 
-    const product = products.find(product => product.id === id);
-
-    if (!product) {
-        return res.status(404).json({
-            message: "Product not found"
-        });
-    }
-
-    res.json(product);
-
-});
-// POST NEW PRODUCT
-app.post("/products", (req, res) => {
-
-    const newProduct = req.body;
-
-    products.push(newProduct);
-
-    res.status(201).json({
-        message: "Product added successfully",
-        product: newProduct
+  if (!product) {
+    return res.status(404).json({
+      message: "Product not found",
     });
+  }
+
+  res.json(product);
+});
+
+// POST NEW PRODUCT
+app.post("/products", async (req, res) => {
+  console.log("Request Body:", req.body);
+
+  const product = await prisma.product.create({
+    data: req.body,
+  });
+
+  res.status(201).json(product);
+});
+
+app.put("/products/:id", async (req, res) => {
+
+  const id = Number(req.params.id);
+
+  const product = await prisma.product.update({
+    where: {
+      id,
+    },
+    data: req.body,
+  });
+
+  res.json(product);
 
 });
 // DELETE PRODUCT
-app.delete("/products/:id", (req, res) => {
+app.delete("/products/:id", async (req, res) => {
 
-    const id = Number(req.params.id);
+  const id = Number(req.params.id);
 
-    const productIndex = products.findIndex(
-        product => product.id === id
-    );
+  await prisma.product.delete({
+    where: {
+      id,
+    },
+  });
 
-    if (productIndex === -1) {
-        return res.status(404).json({
-            message: "Product not found"
-        });
-    }
-
-    const deletedProduct = products.splice(productIndex, 1);
-
-    res.json({
-        message: "Product deleted successfully",
-        product: deletedProduct[0]
-    });
+  res.json({
+    message: "Deleted successfully",
+  });
 
 });
 app.listen(PORT, () => {
