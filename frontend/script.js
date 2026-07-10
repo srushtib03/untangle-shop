@@ -1,65 +1,15 @@
 
-const products = [
-    {
-        id: 1,
-        name: "Laptop",
-        price: 55000,
-        category: "Electronics",
-        stock: 10,
-        image:
-            "./images/laptop.jpeg"
-    },
+let products = [];
 
-    {
-        id: 2,
-        name: "Mouse",
-        price: 800,
-        category: "Electronics",
-        stock: 50,
-        image:
-            "./images/mouse.jpg"
-    },
-
-    {
-        id: 3,
-        name: "Notebook",
-        price: 100,
-        category: "Stationery",
-        stock: 200,
-        image:
-            "./images/notebook.jpg"
-    },
-
-    {
-        id: 4,
-        name: "Premium Pen",
-        price: 20,
-        category: "Stationery",
-        stock: 500,
-        image:
-            "./images/ppen.jpeg"
-    },
-
-    {
-        id: 5,
-        name: "Water Bottle",
-        price: 300,
-        category: "Accessories",
-        stock: 75,
-        image:
-            "./images/bottle.jpeg"
-    },
-
-    {
-        id: 6,
-        name: "Shoes",
-        price: 1200,
-        category: "Accessories",
-        stock: 40,
-        image:
-            "./images/shoes.jpg"
-    }
-];
+const productImages = {
+    "Laptop": "./images/laptop.jpeg",
+    "Wireless Mouse": "./images/mouse.jpg",
+    "Notebook": "./images/notebook.jpg",
+    "Premium Pen": "./images/ppen.jpeg",
+    "Water Bottle": "./images/bottle.jpeg",
+    "Shoes": "./images/shoes.jpg",
+    "Keyboard": "./images/keyboard.jpg"
+};
 
 const productContainer =
     document.getElementById("productContainer");
@@ -78,7 +28,7 @@ function displayProducts(productList) {
 
         card.innerHTML = `
             <img
-                src="${product.image}"
+                src="${productImages[product.name] || './images/default.jpg'}"
                 alt="${product.name}"
                 class="product-image"
             >
@@ -109,25 +59,7 @@ function displayProducts(productList) {
     });
 
 }
-const categories = [
-    ...new Set(
-        products.map(
-            product => product.category
-        )
-    )
-];
 
-categories.forEach(category => {
-
-    const option =
-        document.createElement("option");
-
-    option.value = category;
-    option.textContent = category;
-
-    categoryFilter.appendChild(option);
-
-});
 // Filter Products
 categoryFilter.addEventListener(
     "change",
@@ -153,4 +85,42 @@ categoryFilter.addEventListener(
     }
 );
 
-displayProducts(products);
+async function loadProducts() {
+    try {
+
+        const response = await fetch("http://localhost:3000/products");
+
+        products = await response.json();
+
+        displayProducts(products);
+
+        const categories = [
+            ...new Set(products.map(product => product.category))
+        ];
+
+        categoryFilter.innerHTML =
+            '<option value="all">All Categories</option>';
+
+        categories.forEach(category => {
+
+            const option =
+                document.createElement("option");
+
+            option.value = category;
+            option.textContent = category;
+
+            categoryFilter.appendChild(option);
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        productContainer.innerHTML =
+            "<h2>Unable to load products.</h2>";
+
+    }
+}
+
+loadProducts();
