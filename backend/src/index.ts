@@ -126,6 +126,21 @@ app.delete("/products/:id", async (req, res) => {
   });
 
 });
+
+app.get("/orders", async (req, res) => {
+  try {
+    const orders = await prisma.order.findMany({
+      include: {
+        customer: true,
+        orderItems: true,
+      },
+    });
+
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching orders" });
+  }
+});
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
