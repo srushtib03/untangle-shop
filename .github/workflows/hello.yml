@@ -1,0 +1,17 @@
+name: Hello Workflow
+
+on:
+  push:
+    branches:
+      - feature/cicd
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Print Message
+        run: echo "Hello from Untangle Shop!"
