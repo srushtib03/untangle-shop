@@ -3,7 +3,13 @@ name: Backend CI
 on:
   push:
     branches:
+      - main
+      - feature/auth
       - feature/cicd
+
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
