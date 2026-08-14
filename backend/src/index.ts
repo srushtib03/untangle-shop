@@ -1,4 +1,5 @@
 import "dotenv/config";
+import "./appInsights";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -10,8 +11,8 @@ import {
   authenticateToken,
   AuthRequest,
 } from "./middleware/auth";
+import appInsights from "./appInsights";
 
-console.log("JWT Secret:", process.env.JWT_SECRET);
 const app = express();
 const prisma = new PrismaClient();
 
@@ -209,12 +210,24 @@ app.post(
       const { customerId, status, total } = req.body;
 
       const order = await prisma.order.create({
-        data: {
-          customerId: Number(customerId),
-          status,
-          total: Number(total),
-        },
-      });
+  data: {
+    customerId: Number(customerId),
+    status,
+    total: Number(total),
+  },
+});
+
+    appInsights.defaultClient.trackEvent({
+  name: "OrderCreated",
+  properties: {
+    orderId: String(order.id),
+    customerId: String(customerId),
+    status: String(status),
+    total: String(total),
+  },
+});
+
+  appInsights.defaultClient.flush();
 
       res.status(201).json(order);
     } catch (error) {
