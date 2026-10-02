@@ -12,11 +12,12 @@ import {
   AuthRequest,
 } from "./middleware/auth";
 import appInsights from "./appInsights";
+import { getShoppingRecommendation } from "./services/aiShopping";
 
 const app = express();
 const prisma = new PrismaClient();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5001;
 
 app.use(cors());
 app.use(express.json());
@@ -217,7 +218,7 @@ app.post(
   },
 });
 
-    appInsights.defaultClient.trackEvent({
+      appInsights.defaultClient.trackEvent({
   name: "OrderCreated",
   properties: {
     orderId: String(order.id),
@@ -402,6 +403,39 @@ app.get(
     }
   }
 );
+app.post("/ai/recommend", async (req, res) => {
+  try {
+    const { query } = req.body;
+
+    if (!query || typeof query !== "string" || !query.trim()) {
+      return res.status(400).json({
+        message: "Please provide a shopping query.",
+      });
+    }
+
+    const products = await prisma.product.findMany({
+      orderBy: {
+        id: "asc",
+      },
+    });
+
+    const recommendation = await getShoppingRecommendation(
+      query.trim(),
+      products
+    );
+
+    res.status(200).json({
+      query: query.trim(),
+      recommendation,
+    });
+  } catch (error) {
+    console.error("AI recommendation error:", error);
+
+    res.status(500).json({
+      message: "Failed to generate AI recommendation.",
+    });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
