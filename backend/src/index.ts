@@ -437,6 +437,6 @@ app.post("/ai/recommend", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+app.listen(Number(PORT), () => {
+  console.log(`Server running on port ${PORT}`);
 });
